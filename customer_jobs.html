@@ -1,0 +1,484 @@
+{% extends 'base.html' %} {% block title %} {{ customer.company }} - İşler {% endblock %} {% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Başlık -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-0"><i class="bi bi-kanban text-primary"></i> {{ customer.company }}</h3>
+        </div>
+    </div>
+
+    <!-- Sekmeler -->
+    <ul class="nav nav-tabs mb-3" id="jobTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer" type="button" role="tab" aria-controls="customer" aria-selected="true">
+                Müşteri Bilgileri
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab" aria-controls="jobs" aria-selected="false">
+                İş Listesi
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report" type="button" role="tab" aria-controls="report" aria-selected="false">
+                Faaliyet Raporu
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="jobTabsContent">
+
+        <!-- Müşteri Bilgileri Sekmesi -->
+        <div class="tab-pane fade show active" id="customer" role="tabpanel" aria-labelledby="customer-tab">
+            <div class="card shadow-lg border-0 rounded-3 p-4 position-relative">
+
+                <!-- Butonlar -->
+                <div class="position-absolute top-0 end-0 m-3">
+                    <button id="editBtn" class="btn btn-primary btn-sm me-2">
+                        <i class="bi bi-pencil-square"></i>
+                        <span class="btn-text d-none d-md-inline"> Düzenle</span>
+                    </button>
+                    <button id="saveBtn" class="btn btn-success btn-sm" style="display:none;">
+                        <i class="bi bi-check-circle"></i>
+                        <span class="btn-text d-none d-md-inline"> Kaydet</span>
+                    </button>
+                </div>
+
+                <h5 class="mb-4 border-bottom pb-2 text-primary fw-bold">
+                    <i class="bi bi-person-vcard me-2"></i> Müşteri Bilgileri
+                </h5>
+
+                <!-- Arama -->
+                <div class="mb-3">
+                    <input type="text" id="customerSearch" class="form-control" placeholder="Bilgi ara...">
+                </div>
+
+                <form id="customerForm" class="row g-3">
+                    {% set fields = [ ('code', 'Kod'),('company', 'Firma'), ('tabela', 'Tabela'), ('full_name', 'Yetkili'), ('email', 'E-posta'), ('phone', 'Telefon'), ('website', 'Vergi Sicil No'), ('odasicil', 'Oda Sicil No'), ('sgksicil', 'SGK Sicil No'), ('efaturaportal',
+                    'E-Fatura Portal/Şifre'), ('earsivportal', 'E-Arşiv Portal/Şifre'),('malimuhur', 'Mali mühür/E-imza'), ('isyeriadres', 'İşyeri Adresi'), ('evadres', 'Ev Adresi'), ('vergidairesi', 'Vergi Dairesi'), ('tc', 'T.C'), ('edevletsifre', 'E-devlet
+                    Şifresi'), ('gib', 'GİB Kullanıcı'), ('isebaslamatarihi', 'İşe Başlama Tarihi'), ('sgkmudurulugu', 'SGK Müdürlüğü'), ('sgksifre', 'SGK Şifresi'), ('istelefon', 'İş Telefonu') ] %} {% for field, label in fields %}
+                    <div class="col-md-6 customer-field d-flex align-items-center mb-2">
+                        <label class="form-label fw-semibold me-2">{{ label }}</label>
+                        <p class="form-control-plaintext flex-grow-1 mb-0" id="{{ field }}-text">{{ customer[field] }}</p>
+                        {% if field == 'isebaslamatarihi' %}
+                        <input type="date" class="form-control d-none" id="{{ field }}" name="{{ field }}" value="{{ customer[field] }}"> {% else %}
+                        <input type="text" class="form-control d-none" id="{{ field }}" name="{{ field }}" value="{{ customer[field] }}"> {% endif %}
+                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2 copy-btn" title="Kopyala" data-target="{{ field }}">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+        </div>
+
+        <!-- İş Listesi Sekmesi -->
+        <div class="tab-pane fade" id="jobs" role="tabpanel" aria-labelledby="jobs-tab">
+
+            <!-- Arama -->
+            <div class="mb-3">
+                <input type="text" class="form-control" placeholder="İş ara..." id="searchInput">
+            </div>
+
+            <!-- Desktop Tablo -->
+            <div class="card shadow-sm border-0 d-none d-md-block mb-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0" id="jobTable">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>İş Adı</th>
+                                    <th>Atanan</th>
+                                    <th>Termin</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if jobs %} {% for job in jobs %}
+                                <tr onclick="window.location.href='/job/{{ job.id }}'" style="cursor:pointer;">
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.assigned_user_names or 'Atanmamış' }}</td>
+                                    <td>
+                                        {% if job.target_date %} {{ job.target_date.strftime("%d.%m.%Y") }}
+                                        <span class="text-muted">(
+                                            {{
+                                                        {
+                                                            'Monday': 'Pazartesi','Tuesday': 'Salı','Wednesday': 'Çarşamba',
+                                                            'Thursday': 'Perşembe','Friday': 'Cuma','Saturday': 'Cumartesi','Sunday': 'Pazar'
+                                                        }[job.target_date.strftime("%A")]
+                                                    }})</span> {% else %}
+                                        <span class="text-muted">Tanımlanmamış</span> {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if job.status == 1 %}
+                                        <span class="badge bg-info text-dark">Devam Ediyor</span> {% elif job.status == 0 %}
+                                        <span class="badge bg-success text-white">Tamamlandı</span> {% else %}
+                                        <span class="badge bg-secondary">Bekliyor</span> {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %} {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">Henüz bir iş bulunamadı!</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Kartlar -->
+            <div class="d-block d-md-none">
+                {% if jobs %} {% for job in jobs %}
+                <div class="card shadow-sm mb-3 job-card" onclick="window.location.href='/job/{{ job.id }}'" style="cursor:pointer;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ job.title }}</h5>
+                        <p class="mb-1"><strong>Atanan:</strong> {{ job.assigned_user_names or 'Atanmamış' }}</p>
+                        <p class="mb-1"><strong>Termin:</strong> {% if job.target_date %} {{ job.target_date.strftime("%d.%m.%Y") }}
+                            <span class="text-muted">(
+                                {{
+                                            {
+                                                'Monday': 'Pazartesi','Tuesday': 'Salı','Wednesday': 'Çarşamba',
+                                                'Thursday': 'Perşembe','Friday': 'Cuma','Saturday': 'Cumartesi','Sunday': 'Pazar'
+                                            }[job.target_date.strftime("%A")]
+                                        }})</span> {% else %}
+                            <span class="text-muted">Tanımlanmamış</span> {% endif %}
+                        </p>
+                        <p class="mb-1"><strong>Durum:</strong> {% if job.status == 1 %}
+                            <span class="badge bg-info text-dark">Devam Ediyor</span> {% elif job.status == 0 %}
+                            <span class="badge bg-success text-white">Tamamlandı</span> {% else %}
+                            <span class="badge bg-secondary">Bekliyor</span> {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %} {% else %}
+                <div class="alert alert-warning text-center">Henüz bir iş bulunamadı!</div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Faaliyet Raporu Sekmesi -->
+        <div class="tab-pane fade" id="report" role="tabpanel" aria-labelledby="report-tab">
+
+            <!-- Arama -->
+            <div class="mb-3">
+                <input type="text" class="form-control" placeholder="Faaliyet raporu ara..." id="reportSearch">
+            </div>
+
+            <!-- Rapor Tablosu -->
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0" id="reportTable">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Muhatap</th>
+                                    <th>Konu</th>
+                                    <th>Sorumlu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if reports %} {% for report in reports %}
+                                <tr>
+                                    <td>{{ report['tarih'].strftime("%d.%m.%Y") if report['tarih'] else '' }}</td>
+
+                                    <td>{{ report['muhatap'] }}</td>
+                                    <td>{{ report['konu'] }}</td>
+                                    <td>{{ report['user_id'] }}</td>
+                                </tr>
+                                {% endfor %} {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">Henüz bir faaliyet raporu bulunamadı!
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- MÜŞTERİ BİLGİLERİ ARAMA ---
+        const customerSearch = document.getElementById('customerSearch');
+        if (customerSearch) {
+            customerSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.customer-field').forEach(fieldDiv => {
+                    const label = fieldDiv.querySelector('label').textContent.toLowerCase();
+                    const value = fieldDiv.querySelector('p').textContent.toLowerCase();
+                    fieldDiv.style.display = (label.includes(query) || value.includes(query)) ? '' : 'none';
+                });
+            });
+        }
+
+        // --- İŞ LİSTESİ ARAMA ---
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('#jobTable tbody tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+                document.querySelectorAll('.job-card').forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    card.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        // --- FAALİYET RAPORU ARAMA ---
+        const reportSearch = document.getElementById('reportSearch');
+        if (reportSearch) {
+            reportSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('#reportTable tbody tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        // --- KOPYALA BUTONLARI ---
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                if (input) {
+                    input.classList.remove('d-none');
+                    input.select();
+                    document.execCommand("copy");
+                    input.classList.add('d-none');
+
+                    const tooltip = document.createElement('span');
+                    tooltip.className = 'copy-tooltip';
+                    tooltip.textContent = 'Kopyalandı!';
+                    this.appendChild(tooltip);
+                    setTimeout(() => tooltip.remove(), 1200);
+                }
+            });
+        });
+
+        // --- DÜZENLE / KAYDET ---
+        const editBtn = document.getElementById("editBtn");
+        const saveBtn = document.getElementById("saveBtn");
+        const textElements = document.querySelectorAll("[id$='-text']");
+        const inputElements = document.querySelectorAll("#customerForm input");
+
+        editBtn.addEventListener("click", function() {
+            textElements.forEach(t => t.classList.add("d-none"));
+            inputElements.forEach(i => i.classList.remove("d-none"));
+            editBtn.style.display = "none";
+            saveBtn.style.display = "inline-block";
+        });
+
+        saveBtn.addEventListener("click", async function() {
+            const formData = {};
+            inputElements.forEach(i => formData[i.name] = i.value);
+            formData["id"] = "{{ customer.id }}";
+
+            try {
+                const response = await fetch("/api/customers/update", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    inputElements.forEach(i => {
+                        i.classList.add("d-none");
+                        const textEl = document.getElementById(i.id + "-text");
+                        if (textEl) {
+                            textEl.textContent = i.value;
+                            textEl.classList.remove("d-none");
+                        }
+                    });
+                    saveBtn.style.display = "none";
+                    editBtn.style.display = "inline-block";
+                } else {
+                    alert("Güncelleme hatası: " + result.detail);
+                }
+            } catch (error) {
+                alert("Sunucu hatası: " + error.message);
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Kodunuzdaki tüm CSS olduğu gibi korunuyor */
+    /* Genel yapı */
+    
+    body {
+        background-color: #f5f6fa;
+        font-family: "Inter", "Segoe UI", sans-serif;
+    }
+    /* Kartlar */
+    
+    .card {
+        border: none;
+        border-radius: 1rem;
+        background-color: #fff;
+        transition: all 0.25s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    /* Başlık */
+    
+    h3 i {
+        margin-right: 10px;
+    }
+    /* Sekmeler */
+    
+    .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+        border: none;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        background-color: transparent;
+        border-bottom: 3px solid #0d6efd;
+        font-weight: 600;
+    }
+    /* Form */
+    
+    .form-control {
+        border-radius: 8px;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+    /* Arama kutuları */
+    
+    #customerSearch,
+    #searchInput,
+    #reportSearch {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: box-shadow 0.2s;
+    }
+    
+    #customerSearch:focus,
+    #searchInput:focus,
+    #reportSearch:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+    /* Copy tooltip */
+    
+    .copy-tooltip {
+        position: absolute;
+        top: -25px;
+        right: 0;
+        background: #198754;
+        color: white;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        opacity: 0.95;
+        animation: fadeInOut 1.5s ease;
+    }
+    
+    @keyframes fadeInOut {
+        0% {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        10% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+    }
+    /* Müşteri bilgileri alanı */
+    
+    .customer-field {
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 8px 12px;
+        transition: background 0.3s;
+        position: relative;
+    }
+    
+    .customer-field:hover {
+        background: #f1f4f8;
+    }
+    
+    .customer-field label {
+        width: 140px;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    
+    .customer-field p {
+        font-weight: 500;
+        color: #212529;
+    }
+    /* Copy butonu */
+    
+    .copy-btn {
+        border-radius: 6px;
+    }
+    
+    .copy-btn:hover {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+    /* Tablo */
+    
+    table {
+        font-size: 0.95rem;
+    }
+    
+    table thead th {
+        font-weight: 600;
+    }
+    
+    table tbody tr:hover {
+        background-color: #f1f4f8;
+        cursor: pointer;
+    }
+    /* Mobil kart */
+    
+    .job-card {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,157 @@
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar vh-100 position-fixed shadow-sm">
+    <div class="d-flex flex-column h-100">
+
+        <!-- Menü -->
+        <ul class="nav flex-column mt-3 px-2">
+            <li class="nav-item">
+                <a href="/" class="nav-link d-flex align-items-center {% if request.url.path == '/' %}active{% endif %}">
+                    <i class="bi bi-house-door me-3 fs-5"></i> <span>Panel</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('customers') }}" class="nav-link d-flex align-items-center {% if request.url.path.startswith('/customers') %}active{% endif %}">
+                    <i class="bi bi-people me-3 fs-5"></i> <span>Müşteriler</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('job_list') }}" class="nav-link d-flex align-items-center {% if request.url.path.startswith('/job_list') %}active{% endif %}">
+                    <i class="bi bi-kanban me-3 fs-5"></i> <span>Yapılacak İşler</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('faaliyet_raporu') }}" class="nav-link d-flex align-items-center
+                        {% if request.url.path.startswith('/faaliyet_raporu') %}active{% endif %}">
+                    <i class="bi bi-card-checklist me-3 fs-5"></i> <span> Faaliyet Raporu</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('bilgi_bankasi') }}" class="nav-link d-flex align-items-center {% if request.url.path.startswith('/bilgi_bankasi') %}active{% endif %}">
+                    <i class="bi bi-book me-3 fs-5"></i> <span>Bilgi Bankası</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('reminders') }}" class="nav-link d-flex align-items-center {% if request.url.path.startswith('/reminders') %}active{% endif %}">
+                    <i class="bi bi-alarm me-3 fs-5"></i> <span>Kendime Not</span>
+                </a>
+            </li>
+            {% if request.session.user.type == 1 %}
+            <li class="nav-item">
+                <a href="{{ url_for('users') }}" class="nav-link d-flex align-items-center {% if request.url.path.startswith('/users') %}active{% endif %}">
+                    <i class="bi bi-person-badge me-3 fs-5"></i> <span>Personel</span>
+                </a>
+            </li>
+            {% endif %}
+
+
+
+
+
+
+        </ul>
+
+        <!-- Kullanıcı -->
+        <div class="sidebar-footer mt-auto border-top border-secondary p-3">
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                    <img src="https://ui-avatars.com/api/?name={{ request.session.user.username if request.session.user else 'Admin' }}&background=0d6efd&color=fff" alt="" width="36" height="36" class="rounded-circle me-2">
+                    <strong>{{ request.session.user.username if request.session.user else 'Admin' }}</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark shadow-sm mt-2">
+                    <li><a class="dropdown-item" href="#">Profil</a></li>
+                    <li><a class="dropdown-item" href="#">Ayarlar</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Çıkış Yap</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Overlay -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<style>
+    .sidebar {
+        width: 250px;
+        background-color: #0d1b2a;
+        color: #fff;
+        transition: transform 0.3s ease-in-out;
+        z-index: 1040;
+    }
+    
+    .sidebar .nav-link {
+        color: #adb5bd;
+        font-weight: 500;
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.2s ease;
+    }
+    
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1030;
+        display: none;
+    }
+    
+    .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        transform: translateX(3px);
+    }
+    
+    .sidebar .nav-link.active {
+        background-color: #0d6efd;
+        color: #fff !important;
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
+    }
+    
+    .sidebar-footer {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    @media (max-width: 991px) {
+        #sidebar {
+            transform: translateX(-100%);
+        }
+        #sidebar.show {
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<!-- JS: Toggle -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.querySelector('#sidebarToggle');
+
+        if (sidebar && overlay && toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+                overlay.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.style.display = 'none';
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('show');
+                    overlay.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>

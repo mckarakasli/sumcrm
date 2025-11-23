@@ -1,0 +1,318 @@
+{% extends 'base.html' %} {% block title %}Yapılacaklar{% endblock %} {% block content %}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="bi bi-bell me-2"></i> Kendime Not</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReminderModal">
+            <i class="bi bi-plus"></i> Yeni Hatırlatıcı
+        </button>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Açıklama</th>
+                            <th>Bitirme Tarihi</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reminders %}
+                        <tr class="reminder-row" data-id="{{ r.id }}">
+                            <td>
+                                <input type="text" class="form-control form-control-sm title-input" value="{{ r.title }}" disabled>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm description-input" value="{{ r.description or '' }}" disabled>
+                            </td>
+                            <td>
+                                <input type="datetime-local" class="form-control form-control-sm due-date-input" value="{{ r.due_date.strftime('%Y-%m-%dT%H:%M') if r.due_date else '' }}" disabled>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input status-toggle" type="checkbox" data-id="{{ r.id }}" {% if r.status==0 %}checked{% endif %}>
+                                    </div>
+
+                                    <span class="badge ms-2 
+                                        {% if r.status == 1 %}
+                                            bg-warning text-dark
+                                        {% else %}
+                                            bg-success text-dark
+                                        {% endif %}
+                                        status-badge">
+                                        {% if r.status == 1 %}
+                                        Bekliyor
+                                        {% else %}
+                                        Tamamlandı
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary edit-btn">
+                                    <i class="bi bi-pencil"></i> Düzenle
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success save-btn d-none">
+                                    <i class="bi bi-check-lg"></i> Kaydet
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-btn">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-block d-md-none">
+        {% for r in reminders %}
+        <div class="card shadow-sm mb-3" style="cursor:pointer;">
+            <div class="card-body">
+                <h5 class="card-title">{{ r.title }}</h5>
+                <p class="mb-1">{{ r.description or '-' }}</p>
+                <p class="mb-1"><strong>Bitirme:</strong> {{ r.due_date.strftime('%d.%m.%Y %H:%M') if r.due_date else '-' }}</p>
+                <div class="mb-1">
+                    <strong>Durum:</strong>
+                    <div class="d-flex align-items-center mt-1">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input status-toggle" type="checkbox" data-id="{{ r.id }}" {% if r.status==0 %}checked{% endif %}>
+                        </div>
+                        <span class="badge ms-2 
+                            {% if r.status == 1 %}
+                                bg-warning text-dark
+                            {% else %}
+                                bg-success text-dark
+                            {% endif %}
+                            status-badge">
+                            {% if r.status == 1 %}
+                            Bekliyor
+                            {% else %}
+                            Tamamlandı
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addReminderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addReminderForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni Hatırlatıcı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Başlık <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Bitirme Tarihi</label>
+                        <input type="datetime-local" class="form-control" id="due_date" name="due_date">
+                    </div>
+                </div>
+
+                <input type="hidden" id="user_id" name="user_id" value="15">
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT – TAM DÜZELTİLMİŞ SÜRÜM
+=============================================================== -->
+
+<script>
+    /* --------------------------
+           DURUM GÜNCELLEME (TOGGLE)
+        --------------------------- */
+    document.querySelectorAll('.status-toggle').forEach(toggle => {
+        toggle.addEventListener('click', e => e.stopPropagation());
+
+        toggle.addEventListener('change', async function() {
+            const reminderId = this.dataset.id;
+
+            // Backend mantığı:
+            // 0 = tamamlandı, 1 = bekliyor
+            const status = this.checked ? 0 : 1;
+
+            const badge = this.closest('.d-flex').querySelector('.status-badge');
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('status', status);
+
+                const response = await fetch(`/reminders/${reminderId}/status`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (status === 0) {
+                        badge.className = "badge ms-2 bg-success text-dark status-badge";
+                        badge.textContent = "Tamamlandı";
+                    } else {
+                        badge.className = "badge ms-2 bg-warning text-dark status-badge";
+                        badge.textContent = "Bekliyor";
+                    }
+                } else {
+                    alert("Durum güncellenemedi: " + result.detail);
+                }
+
+            } catch (error) {
+                alert("Sunucu hatası: " + error);
+            }
+        });
+    });
+</script>
+
+<script>
+    /* --------------------------
+            SİLME İŞLEMİ
+        --------------------------- */
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async e => {
+            e.stopPropagation();
+
+            if (!confirm("Bu hatırlatıcıyı silmek istiyor musunuz?")) return;
+
+            const row = btn.closest('.reminder-row');
+            const reminderId = row.dataset.id;
+
+            try {
+                const response = await fetch(`/reminders/${reminderId}/delete`, {
+                    method: "DELETE"
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    row.remove();
+                    alert("Hatırlatıcı silindi!");
+                } else {
+                    alert("Silme hatası: " + result.detail);
+                }
+
+            } catch (error) {
+                alert("Sunucu hatası: " + error);
+            }
+        });
+    });
+</script>
+
+<script>
+    /* --------------------------
+            YENİ HATIRLATICI EKLEME
+        --------------------------- */
+    document.getElementById("addReminderForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        formData.append("user_id", document.getElementById("user_id").value);
+
+        try {
+            const response = await fetch("/reminders/add", {
+                method: "POST",
+                body: new URLSearchParams(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert("Bir hata oluştu: " + result.detail);
+            }
+
+        } catch (error) {
+            alert("Sunucu hatası: " + error);
+        }
+    });
+</script>
+
+<script>
+    /* --------------------------
+            DÜZENLE / KAYDET
+        --------------------------- */
+    document.querySelectorAll('.reminder-row').forEach(row => {
+
+        const editBtn = row.querySelector('.edit-btn');
+        const saveBtn = row.querySelector('.save-btn');
+        const inputs = row.querySelectorAll('input[type="text"], input[type="datetime-local"]');
+
+        editBtn.addEventListener("click", () => {
+            inputs.forEach(i => i.disabled = false);
+            editBtn.classList.add("d-none");
+            saveBtn.classList.remove("d-none");
+        });
+
+        saveBtn.addEventListener("click", async() => {
+            const reminderId = row.dataset.id;
+
+            const title = row.querySelector('.title-input').value;
+            const description = row.querySelector('.description-input').value;
+            const due_date = row.querySelector('.due-date-input').value;
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append("title", title);
+                formData.append("description", description);
+                formData.append("due_date", due_date);
+
+                const response = await fetch(`/reminders/${reminderId}/update`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert("Hatırlatıcı güncellendi!");
+                    inputs.forEach(i => i.disabled = true);
+                    saveBtn.classList.add("d-none");
+                    editBtn.classList.remove("d-none");
+                } else {
+                    alert("Güncelleme hatası: " + result.detail);
+                }
+
+            } catch (error) {
+                alert("Sunucu hatası: " + error);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

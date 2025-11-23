@@ -1,0 +1,217 @@
+{% extends 'base.html' %} {% block title %}Ana Sayfa{% endblock %} {% block content %}
+
+<main class="flex-fill">
+    <div class="container-fluid py-5">
+
+        <!-- ÜST KARTLAR -->
+        <div class="row g-4 mb-5">
+
+            <div class="col-6 col-md-3">
+                <a href="/job_list?status=1" class="text-decoration-none">
+                    <div class="stat-card bg-primary text-white shadow-lg rounded-4">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-folder2-open display-5 mb-2"></i>
+                            <h6 class="fw-semibold text-uppercase">Açık İşler</h6>
+                            <h1 class="fw-bold mb-0 counter">{{ status_1_count }}</h1>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <a href="/job_list?status=0" class="text-decoration-none">
+                    <div class="stat-card bg-warning text-dark shadow-lg rounded-4">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-check-circle display-5 mb-2"></i>
+                            <h6 class="fw-semibold text-uppercase">Tamamlanan İşler</h6>
+                            <h1 class="fw-bold mb-0 counter">{{ status_0_count }}</h1>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="stat-card bg-info text-white shadow-lg rounded-4">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-calendar-event display-5 mb-2"></i>
+                        <h6 class="fw-semibold text-uppercase">Bugün Terminli İşler</h6>
+                        <h1 class="fw-bold mb-0 counter">{{ today_jobs|length }}</h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="stat-card bg-danger text-white shadow-lg rounded-4">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-exclamation-triangle display-5 mb-2"></i>
+                        <h6 class="fw-semibold text-uppercase">Geciken İşler</h6>
+                        <h1 class="fw-bold mb-0 counter">{{ overdue_jobs|length }}</h1>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ALT TABLOLAR -->
+        <div class="row g-4 mb-5">
+            <!-- Geciken İşler -->
+            <div class="col-12 col-lg-4">
+                <div class="data-card h-100">
+                    <div class="card-header bg-danger text-white fw-bold">
+                        <i class="bi bi-exclamation-octagon-fill me-2 p-2"></i> Geciken İşler
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover align-middle mb-0 text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 px-3">Mükellef</th>
+                                    <th class="py-3 px-3">İş Adı</th>
+                                    <th class="py-3 px-3">Termin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in overdue_jobs %}
+                                <tr class="table-row" onclick="window.location.href='/job/{{ job.id }}'">
+                                    <td>{{ job.customer_code }}</td>
+                                    <td>{{ job.title }}</td>
+                                    <td class="text-danger fw-bold">{{ job.target_date.strftime('%d.%m.%Y') }}</td>
+                                </tr>
+                                {% endfor %} {% if overdue_jobs|length == 0 %}
+                                <tr>
+                                    <td colspan="3" class="text-muted py-3">Geciken iş bulunamadı</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bugün Terminli İşler -->
+            <div class="col-12 col-lg-4">
+                <div class="data-card h-100">
+                    <div class="card-header bg-info text-white fw-bold">
+                        <i class="bi bi-calendar-event me-2 p-2"></i> Bugün Terminli İşler
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover align-middle mb-0 text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 px-3">Mükellef</th>
+                                    <th class="py-3 px-3">İş Adı</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in today_jobs %}
+                                <tr class="table-row" onclick="window.location.href='/job/{{ job.id }}'">
+                                    <td>{{ job.customer_code }}</td>
+                                    <td>{{ job.title }}</td>
+                                </tr>
+                                {% endfor %} {% if today_jobs|length == 0 %}
+                                <tr>
+                                    <td colspan="2" class="text-muted py-3">Bugün iş yok</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Üzerime Atanan İşler -->
+            <div class="col-12 col-lg-4">
+                <div class="data-card h-100">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="bi bi-person-workspace me-2 p-2"></i> Üzerime Atanan İşler
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover align-middle mb-0 text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 px-3">Mükellef</th>
+                                    <th class="py-3 px-3">İş Adı</th>
+                                    <th class="py-3 px-3">Termin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in assigned_jobs %}
+                                <tr class="table-row" onclick="window.location.href='/job/{{ job.id }}'">
+                                    <td>{{ job.customer_code }}</td>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.target_date.strftime('%d.%m.%Y') }}</td>
+                                </tr>
+                                {% endfor %} {% if assigned_jobs|length == 0 %}
+                                <tr>
+                                    <td colspan="3" class="text-muted py-3">Üzerinize atanmış iş yok</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</main>
+
+<!-- 🎨 TASARIM -->
+<style>
+    .chart-container {
+        position: relative;
+        width: 280px;
+        /* 🔹 genişliği küçülttük */
+        height: 280px;
+        /* 🔹 yüksekliği aynı oranda */
+        max-width: 90%;
+        /* mobilde taşmaması için */
+        margin: 0 auto;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .data-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        transition: 0.3s ease;
+    }
+    
+    .data-card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table thead th {
+        padding: 0.9rem 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    
+    .table-row {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    
+    .table-row:hover {
+        background-color: #f5f7fa !important;
+    }
+</style>
+
+<!-- 📊 GRAFİK KÜTÜPHANESİ -->
+
+
+
+
+
+{% endblock %}

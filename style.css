@@ -1,0 +1,217 @@
+/* ------------------------
+   Genel Hover Efektleri
+------------------------ */
+
+.table-row {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.table-row:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-hover {
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ------------------------
+   Badges
+------------------------ */
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.6em;
+}
+
+
+/* ------------------------
+   Tablolar
+------------------------ */
+
+table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+thead {
+    background: linear-gradient(90deg, #4e73df, #1cc88a);
+    color: white;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #f8f9fa;
+}
+
+
+/* ------------------------
+   Floating Button
+------------------------ */
+
+.floating-btn {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.floating-btn:hover {
+    transform: scale(1.1);
+}
+
+
+/* ------------------------
+   Responsive Kartlar
+------------------------ */
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.copy-tooltip {
+    position: absolute;
+    top: -25px;
+    right: 0;
+    background: #333;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 10;
+}
+
+.copy-btn {
+    position: relative;
+}
+
+.job-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.badge {
+    font-size: 0.85rem;
+}
+
+.card-body {
+    font-size: 0.95rem;
+}
+
+.card strong {
+    color: #333;
+}
+
+.btn-sm i {
+    font-size: 1rem;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Card hover efekti */
+
+.job-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+}
+
+
+/* Durum renkleri */
+
+.bg-success {
+    background-color: #198754 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #0d1b2a;
+    /* Düz koyu lacivert */
+    color: #fff;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1040;
+}
+
+.sidebar .nav-link {
+    color: #adb5bd;
+    font-weight: 500;
+    border-radius: 10px;
+    padding: 10px 15px;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateX(3px);
+}
+
+.sidebar .nav-link.active {
+    background-color: #0d6efd;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
+}
+
+.sidebar-header h5 {
+    color: #f8f9fa;
+}
+
+.sidebar-footer {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 991px) {
+    #sidebar {
+        transform: translateX(-100%);
+    }
+    #sidebar.show {
+        transform: translateX(0);
+    }
+}
+
+@media (max-width:991px) {
+    .filter-panel {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: 10px;
+    }
+}
+
+@media(max-width: 768px) {
+    #searchInput {
+        margin-bottom: 10px;
+    }
+}

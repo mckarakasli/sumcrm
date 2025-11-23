@@ -1,0 +1,248 @@
+{% extends 'base.html' %} {% block title %}İş Detayı{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Başlık ve Geri Butonu -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="bi bi-card-checklist text-primary"></i> İş Detayı
+        </h3>
+        <a href="/job_list" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Geri
+        </a>
+    </div>
+
+    {% if job %} {% set main_job = job[0] %}
+    <!-- İş Bilgileri Kartı -->
+    <div class="card shadow-sm rounded-4 mb-4 p-4 border-primary border-start border-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Başlık -->
+                <h4 id="jobTitle" class="fw-bold mb-0" contenteditable="true">{{ main_job.title }}</h4>
+
+                <!-- Kaydet Butonu -->
+                <button id="saveTitleBtn" class="btn btn-sm btn-success ms-2">Kaydet</button>
+            </div>
+
+            <span class="badge {% if main_job.status == 1 %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if main_job.status == 1 %}Devam Ediyor{% else %}Tamamlandı{% endif %}
+            </span>
+        </div>
+        <div class="row mb-3 text-muted small">
+            <div class="col-md-4"><strong>Müşteri:</strong> {{ main_job.customer_company }} ({{ main_job.customer_code }})</div>
+            <!-- Atanan Personel ve Buton -->
+            <div class="col-md-4 d-flex align-items-center">
+                <strong>Atanan Personel:</strong>
+                <span id="assignedUsersText" class="ms-2">{{ main_job.assigned_users or 'Atanmamış' }}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#assignUsersModal">
+                   Atamayı Değiştir
+               </button>
+            </div>
+            <div class="col-md-4">
+                <strong>Termin:</strong> {% if main_job.target_date %} {{ main_job.target_date.strftime("%d.%m.%Y") }}
+                <span class="text-muted">
+        ({{ {
+                'Monday': 'Pazartesi',
+                'Tuesday': 'Salı',
+                'Wednesday': 'Çarşamba',
+                'Thursday': 'Perşembe',
+                'Friday': 'Cuma',
+                'Saturday': 'Cumartesi',
+                'Sunday': 'Pazar'
+            }[main_job.target_date.strftime("%A")] }})
+    </span>
+                <!-- Revize Butonu -->
+                <button class="btn btn-sm btn-warning ms-2" data-bs-toggle="modal" data-bs-target="#updateDateModal">
+        <i class="bi bi-pencil"></i> Revize Et
+    </button> {% else %}
+                <span class="text-muted">Belirtilmemiş</span> {% endif %}
+            </div>
+
+            <!-- Modal: Tarih Güncelleme -->
+            <!-- Modal: Tarih Güncelleme -->
+            <div class="modal fade" id="updateDateModal" tabindex="-1" aria-labelledby="updateDateModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 shadow-lg">
+                        <form method="post" action="/update_target_date/{{ main_job.job_id }}">
+                            <div class="modal-header bg-warning text-white rounded-top-4">
+                                <h5 class="modal-title" id="updateDateModalLabel">Termin Tarihini Güncelle</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Tarih Seçici -->
+                                <div class="mb-3">
+                                    <label for="targetDate" class="form-label">Yeni Termin Tarihi</label>
+                                    <input type="date" class="form-control" id="targetDate" name="target_date" value="{{ main_job.target_date.strftime('%Y-%m-%d') }}" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Kapat</button>
+                                <button type="submit" class="btn btn-warning rounded-pill fw-bold">Güncelle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-md-4"><strong>Oluşturulma:</strong> {{ main_job.job_created_at }}</div>
+        </div>
+
+        <!-- Durum Seçimi -->
+        <form method="post" action="/job/{{ main_job.job_id }}/status" class="d-flex align-items-center mb-3">
+            <label class="form-label me-2 fw-bold mb-0">İş Durumu:</label>
+            <select class="form-select w-auto me-2" name="status">
+                <option value="0" {% if main_job.status == 0 %}selected{% endif %}>Tamamlandı</option>
+                <option value="1" {% if main_job.status == 1 %}selected{% endif %}>Devam Ediyor</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Güncelle</button>
+        </form>
+
+        <hr>
+
+        <!-- Yeni Detay Ekle -->
+        <button class="btn btn-outline-success mb-3" id="addDetailBtn">Yeni Detay Ekle</button>
+        <form method="post" action="/job/{{ main_job.job_id }}/add_detail" id="addDetailForm" class="mb-4" style="display: none;">
+            <input type="hidden" name="job_id" value="{{ main_job.job_id }}">
+            <textarea class="form-control mb-2" name="message" rows="3" placeholder="Detay mesajınızı yazın..." required></textarea>
+            <button type="submit" class="btn btn-success btn-sm">Kaydet</button>
+        </form>
+
+        <!-- İş Detayları -->
+        <h5 class="mb-3">İş Detayları</h5>
+        {% if job|length > 0 %}
+        <div class="d-flex flex-column gap-3">
+            {% for detail in job if detail.detail_message %}
+            <div class="card shadow-sm border rounded-3 p-3 position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="detail-text">{{ detail.detail_message }}</div>
+                    <div class="text-end ms-3">
+                        <small class="text-muted d-block">Oluşturuldu: {{ detail.detail_created }}</small> {% if detail.detail_updated %}
+                        <small class="text-success d-block">Güncellendi: {{ detail.detail_updated }}</small> {% endif %}
+                        <!-- Düzenle butonu -->
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-1 edit-detail-btn" data-detail-id="{{ detail.detail_id }}" data-message="{{ detail.detail_message|e }}">
+                            Düzenle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Düzenleme formu -->
+                <form method="post" action="/job/details/update" class="edit-detail-form mt-2" style="display: none;">
+                    <input type="hidden" name="detail_id" value="{{ detail.detail_id }}">
+                    <textarea class="form-control mb-2" name="message" rows="2">{{ detail.detail_message }}</textarea>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-success btn-sm">Güncelle</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">İptal</button>
+                    </div>
+                </form>
+
+                <!-- Personel Bilgisi -->
+                <small class="text-muted mt-2 d-block">Yazar: {{ detail.user_name or 'Bilinmiyor' }}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Henüz iş detayı eklenmemiş.</p>
+        {% endif %}
+
+    </div>
+    {% else %}
+    <p class="text-danger">İş bulunamadı.</p>
+    {% endif %}
+
+    <!-- Atama Modal -->
+    <div class="modal fade" id="assignUsersModal" tabindex="-1" aria-labelledby="assignUsersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <form method="post" action="/job/{{ main_job.job_id }}/update_users">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignUsersModalLabel">Personel Ataması</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% for user in users %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="assigned_users" value="{{ user.id }}" id="userCheck{{ user.id }}" {% if job[0].assigned_users and user.name in job[0].assigned_users %}checked{% endif %}>
+                            <label class="form-check-label" for="userCheck{{ user.id }}">
+                            {{ user.name }}
+                        </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    // Yeni detay ekleme
+    const addBtn = document.getElementById('addDetailBtn');
+    const addForm = document.getElementById('addDetailForm');
+    addBtn.addEventListener('click', () => {
+        addForm.style.display = addForm.style.display === 'none' ? 'block' : 'none';
+        addBtn.textContent = addForm.style.display === 'block' ? 'İptal' : 'Yeni Detay Ekle';
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal açıldığında mevcut tarihi yükleyelim
+        const modal = new bootstrap.Modal(document.getElementById('updateDateModal'));
+        modal._element.addEventListener('show.bs.modal', function() {
+            const currentDate = '{{ main_job.target_date.strftime("%Y-%m-%d") }}';
+            document.getElementById('targetDate').value = currentDate; // Güncel tarihi formda ayarlayalım
+        });
+    });
+    // Detay düzenleme
+    document.querySelectorAll('.edit-detail-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('.card');
+            const form = card.querySelector('.edit-detail-form');
+            form.style.display = 'block';
+            btn.style.display = 'none';
+        });
+    });
+
+    // Düzenlemeyi iptal et
+    document.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = btn.closest('.edit-detail-form');
+            const card = form.closest('.card');
+            form.style.display = 'none';
+            card.querySelector('.edit-detail-btn').style.display = 'inline-block';
+        });
+    });
+</script>
+<script>
+    document.getElementById('saveTitleBtn').addEventListener('click', () => {
+        const titleElement = document.getElementById('jobTitle');
+        const newTitle = titleElement.textContent.trim();
+
+        if (newTitle === '') {
+            alert('Başlık boş olamaz!');
+            return;
+        }
+
+        fetch(`/job/{{ main_job.job_id }}/update_title`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: newTitle
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Başlık başarıyla güncellendi!');
+                } else {
+                    alert('Başlık güncellenirken hata oluştu!');
+                }
+            });
+    });
+</script>
+
+{% endblock %}

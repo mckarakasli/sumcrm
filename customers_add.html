@@ -1,0 +1,44 @@
+{% extends 'base.html' %} {% block title %}Müşteri Ekle{% endblock %} {% block content %}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h4 class="card-title mb-4"><i class="bi bi-person-plus-fill text-primary"></i> Yeni Müşteri Ekle</h4>
+
+            <form method="POST" action="/customers/add">
+                <div class="mb-3">
+                    <label for="code" class="form-label">Müşteri Kodu</label>
+                    <input type="text" class="form-control" id="code" name="code" required>
+                </div>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Ad Soyad</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="company" class="form-label">Şirket</label>
+                    <input type="text" class="form-control" id="company" name="company" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-posta</label>
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Telefon</label>
+                    <input type="text" class="form-control" id="phone" name="phone">
+                </div>
+                <div class="mb-3">
+                    <label for="status" class="form-label">Durum</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="1" selected>Aktif</option>
+                        <option value="0">Pasif</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Kaydet</button>
+                <a href="/customers" class="btn btn-secondary">İptal</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

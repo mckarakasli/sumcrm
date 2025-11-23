@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block title %}Arama Sonuçları{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+    <h3>Arama Sonuçları: "{{ query }}"</h3>
+    <div class="row g-3 mt-3">
+        {% if results %} {% for job in results %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 job-card" style="cursor:pointer;" onclick="window.location.href='/job/{{ job.id }}'">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ job.title }}</h5>
+                    <p class="card-text mb-1"><strong>Müşteri:</strong> {{ job.customer_company }} ({{ job.customer_code }})</p>
+                    <p class="card-text mb-1"><strong>Termin:</strong> {{ job.target_date }}</p>
+                    <p class="card-text mb-1"><strong>Personel:</strong> {{ job.assigned_users or 'Atanmamış' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %} {% else %}
+        <p>Arama kriterinize uygun iş bulunamadı.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

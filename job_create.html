@@ -1,0 +1,91 @@
+{% extends 'base.html' %} {% block title %}Yeni İş{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+    <h3 class="mb-4">
+        <i class="bi bi-card-checklist text-primary"></i> Yeni İş Ekle
+    </h3>
+
+    <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-body">
+            <form method="post" action="/job/add">
+
+                <!-- Gizli: Giriş yapan kullanıcının ID'si -->
+                <input type="hidden" name="author_id" value="{{ request.session.get('user_id') }}">
+
+                <!-- İş Başlığı -->
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-bold">İş Başlığı</label>
+                    <input type="text" class="form-control form-control-lg" id="title" name="title" placeholder="İşin adını girin..." required>
+                </div>
+
+                <!-- Müşteri Seçimi -->
+                <div class="mb-3">
+                    <label for="customer_id" class="form-label fw-bold">Müşteri</label>
+                    <select class="form-select form-select-lg" id="customer_id" name="customer_id" required>
+                        <option value="" selected disabled>Müşteri seçin...</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.company }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Termin Tarihi -->
+                <div class="mb-3">
+                    <label for="due_date" class="form-label fw-bold">Termin Tarihi</label>
+                    <input type="date" class="form-control form-control-lg" id="due_date" name="final_date" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Personel Ataması</label>
+
+                    <!-- Tümünü seç / kaldır butonu -->
+                    <button type="button" class="btn btn-sm btn-secondary mb-2" id="selectAllBtn" onclick="toggleSelectAll()">
+        Tümünü Seç
+    </button>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for user in users %}
+                        <div class="form-check form-check-inline">
+                            <input class="btn-check" type="checkbox" name="user_ids" id="user{{ user.id }}" value="{{ user.id }}" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="user{{ user.id }}">{{ user.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <small class="text-muted d-block mt-1">Birden çok personel seçebilirsiniz.</small>
+                </div>
+
+                <script>
+                    function toggleSelectAll() {
+                        const checkboxes = document.querySelectorAll('input[name="user_ids"]');
+                        const btn = document.getElementById('selectAllBtn');
+
+                        // Hepsi seçili mi kontrol et
+                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+                        if (allChecked) {
+                            // Hepsi seçiliyse -> hepsini kaldır
+                            checkboxes.forEach(cb => cb.checked = false);
+                            btn.textContent = "Tümünü Seç";
+                        } else {
+                            // Değilse -> hepsini seç
+                            checkboxes.forEach(cb => cb.checked = true);
+                            btn.textContent = "Tümünü Kaldır";
+                        }
+                    }
+                </script>
+
+
+                <!-- Açıklama -->
+                <div class="mb-3">
+                    <label for="description" class="form-label fw-bold">Açıklama</label>
+                    <textarea class="form-control form-control-lg" id="description" name="description" rows="3" placeholder="İşle ilgili açıklama girin..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg shadow-sm px-4">
+                    <i class="bi bi-save"></i> Kaydet
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

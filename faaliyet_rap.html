@@ -1,0 +1,335 @@
+{% extends 'base.html' %} {% block title %}Faaliyet Raporu{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="bi bi-journal-text text-primary"></i> Faaliyet Raporu</h3>
+        </div>
+    </div>
+
+    <!-- Form Accordion -->
+    <div class="accordion mb-5" id="faaliyetAccordion">
+        <div class="accordion-item shadow-sm border-0 rounded-4 bg-white">
+            <h2 class="accordion-header" id="headingForm">
+                <button class="accordion-button fw-bold text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseForm" aria-expanded="true" aria-controls="collapseForm">
+                    <i class="bi bi-journal-plus me-2"></i> Yeni Faaliyet Kaydı
+                </button>
+            </h2>
+            <div id="collapseForm" class="accordion-collapse collapse show" aria-labelledby="headingForm" data-bs-parent="#faaliyetAccordion">
+                <div class="accordion-body">
+                    <form id="reportForm" class="row g-3">
+                        <!-- Tarih ve Saat -->
+                        <div class="col-12 col-md-3">
+                            <label for="tarih" class="form-label fw-semibold">Tarih</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                                <input type="date" class="form-control" name="tarih" id="tarih" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label for="saat" class="form-label fw-semibold">Saat</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                <input type="time" class="form-control" name="saat" id="saat" required>
+                            </div>
+                        </div>
+
+                        <!-- Müşteri -->
+                        <div class="col-12 col-md-6">
+                            <label for="customer_name" class="form-label fw-semibold">Mükellef</label>
+                            <div class="input-group">
+                                <input list="customersList" class="form-control" name="customer_name" id="customer_name" placeholder="Firma adı..." required>
+                                <input type="hidden" name="customer_id" id="customer_id">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <datalist id="customersList">
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.company }}" data-id="{{ customer.id }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <!-- Telefon ve Muhatap -->
+                        <div class="col-12 col-md-6">
+                            <label for="phone" class="form-label fw-semibold">Telefon</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" class="form-control" name="phone" id="phone" placeholder="+90 5xx xxx xx xx">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label for="muhatap" class="form-label fw-semibold">Muhatap</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" name="muhatap" id="muhatap" class="form-control" placeholder="Muhatap adı..." required>
+                            </div>
+                        </div>
+
+                        <!-- Personel -->
+                        <div class="col-12 col-md-3">
+                            <label for="user_id" class="form-label fw-semibold">Personel</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                <select class="form-select" name="user_id" id="user_id" required>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}"
+                                        {% if user.id == current_user.id %}selected{% endif %}>
+                                        {{ user.username }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Konu / Açıklama -->
+                        <div class="col-12">
+                            <label for="konu" class="form-label fw-semibold">Konu / Açıklama</label>
+                            <textarea class="form-control" name="konu" id="konu" rows="3" placeholder="Yapılan işlem veya olay..." required></textarea>
+                        </div>
+
+                        <!-- Buton -->
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="bi bi-check2-circle me-2"></i> Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim -->
+    <div id="notification" class="position-fixed top-0 end-0 p-3" style="z-index: 1055; display:none;">
+        <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="notificationText"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="hideNotification()"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <h5 class="fw-bold text-primary mb-2 mb-md-0">
+                    <i class="bi bi-list-ul me-2"></i> Günlük Kayıtlar
+                </h5>
+                <input type="text" id="searchReports" class="form-control form-control-sm w-100 w-md-25" placeholder="Ara...">
+            </div>
+
+            <div id="reportCards" class="row g-3">
+                {% for report in reports %}
+                <div class="col-12 col-md-6 col-lg-4 report-card" data-id="{{ report.id }}" data-customer-id="{{ report.customer_id }}">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="fw-bold text-primary mb-1">{{ report.company }}</h6>
+                                <small class="text-muted">{{ report.tarih }} • {{ report.saat }}</small>
+                            </div>
+                            <p class="mb-1"><strong>Muhatap:</strong> {{ report.muhatap }}</p>
+                            <p class="mb-1"><strong>Telefon:</strong> {{ report.phone or "-" }}</p>
+                            <p class="mb-2"><strong>Konu:</strong> {{ report.konu }}</p>
+                            <p class="mb-0"><small class="text-muted"><i class="bi bi-person-badge"></i>
+                                    {{ report.user_name }}</small></p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-primary edit-btn"><i
+                                    class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn"><i
+                                    class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Detay Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="detailModalLabel"><i class="bi bi-journal-text me-2"></i> Faaliyet Detayı
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p><strong>Tarih:</strong> <span id="detailTarih"></span></p>
+                            <p><strong>Saat:</strong> <span id="detailSaat"></span></p>
+                            <p><strong>Mükellef:</strong> <span id="detailCompany"></span></p>
+                            <p><strong>Muhatap:</strong> <span id="detailMuhatap"></span></p>
+                            <p><strong>Telefon:</strong> <span id="detailPhone"></span></p>
+                            <p><strong>Konu / Açıklama:</strong> <span id="detailKonu"></span></p>
+                            <p><strong>Personel:</strong> <span id="detailUser"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+                    const customers = JSON.parse('{{ customers | tojson | safe }}');
+                    const users = JSON.parse('{{ users | tojson | safe }}');
+
+                    function showNotification(msg, ok = true) {
+                        const box = document.getElementById("notification");
+                        const toast = box.querySelector(".toast");
+                        document.getElementById("notificationText").textContent = msg;
+                        toast.classList.toggle("bg-success", ok);
+                        toast.classList.toggle("bg-danger", !ok);
+                        box.style.display = "block";
+                        setTimeout(() => (box.style.display = "none"), 3000);
+                    }
+
+                    // Müşteri ID otomatik doldurma
+                    const customerInput = document.getElementById("customer_name");
+                    const customerIdInput = document.getElementById("customer_id");
+                    customerInput.addEventListener("input", e => {
+                        const c = customers.find(c => c.company === e.target.value);
+                        customerIdInput.value = c ? c.id : "";
+                    });
+
+                    // Form başlangıç değerleri
+                    const form = document.getElementById("reportForm");
+                    const now = new Date();
+                    form.tarih.value = now.toISOString().slice(0, 10);
+                    form.saat.value = now.toTimeString().slice(0, 5);
+
+                    // Form gönderimi
+                    form.addEventListener("submit", async e => {
+                        e.preventDefault();
+                        const fd = new FormData(form);
+                        const data = Object.fromEntries(fd.entries());
+                        if (!data.customer_id) return showNotification("Lütfen geçerli bir müşteri seçin!",
+                            false);
+                        if (!data.user_id) return showNotification("Lütfen personel seçin!", false);
+
+                        const res = await fetch("/api/faaliyetraporu/add", {
+                            method: "POST",
+                            body: fd
+                        });
+                        const result = await res.json();
+                        if (result.success) location.reload();
+                        else showNotification(result.message, false);
+                    });
+
+                    // Düzenleme
+                    document.querySelectorAll(".edit-btn").forEach(btn => {
+                                btn.addEventListener("click", e => {
+                                            const card = e.target.closest(".report-card");
+                                            if (card.classList.contains("editing")) return;
+                                            card.classList.add("editing");
+
+                                            const body = card.querySelector(".card-body");
+                                            const id = card.dataset.id;
+
+                                            const oldData = {
+                                                company: body.querySelector("h6").textContent,
+                                                tarih: body.querySelector("small").textContent.split(" • ")[0],
+                                                saat: body.querySelector("small").textContent.split(" • ")[1],
+                                                muhatap: body.querySelector("p:nth-of-type(1)").textContent.replace(
+                                                    "Muhatap:", "").trim(),
+                                                phone: body.querySelector("p:nth-of-type(2)").textContent.replace(
+                                                    "Telefon:", "").trim(),
+                                                konu: body.querySelector("p:nth-of-type(3)").textContent.replace(
+                                                    "Konu:", "").trim(),
+                                                user_name: body.querySelector("small").textContent.trim().split(" ")
+                                                    .slice(-1)[0]
+                                            };
+
+                                            body.innerHTML = `
+                        <div class="mb-2"><label class="form-label small">Tarih</label><input type="date" class="form-control form-control-sm" value="${oldData.tarih}"></div>
+                        <div class="mb-2"><label class="form-label small">Saat</label><input type="time" class="form-control form-control-sm" value="${oldData.saat}"></div>
+                        <div class="mb-2"><label class="form-label small">Mükellef</label><input disabled list="editCustomerList${id}" class="form-control form-control-sm" value="${oldData.company}"><datalist id="editCustomerList${id}">${customers.map(c=>`<option value="${c.company}">`).join("")}</datalist></div>
+                        <div class="mb-2"><label class="form-label small">Muhatap</label><input type="text" class="form-control form-control-sm" value="${oldData.muhatap}"></div>
+                        <div class="mb-2"><label class="form-label small">Telefon</label><input type="text" class="form-control form-control-sm" value="${oldData.phone}"></div>
+                        <div class="mb-2"><label class="form-label small">Konu</label><textarea class="form-control form-control-sm" rows="3">${oldData.konu || ""}</textarea></div>
+                        <div class="mb-2"><label class="form-label small">Personel</label><select disabled class="form-select form-select-sm">${users.map(u=>`<option value="${u.id}" ${u.username===oldData.user_name?"selected":""}>${u.username}</option>`).join("")}</select></div>
+                    `;
+
+                    const footer = card.querySelector(".card-footer");
+                    footer.innerHTML = `
+                        <button class="btn btn-sm btn-success save-btn"><i class="bi bi-check"></i></button>
+                        <button class="btn btn-sm btn-secondary cancel-btn"><i class="bi bi-x"></i></button>
+                    `;
+
+                    footer.querySelector(".save-btn").addEventListener("click", async () => {
+                        const tarih = body.querySelector('input[type="date"]')
+                        .value;
+                        const saat = body.querySelector('input[type="time"]').value;
+                        const companyName = body.querySelector('input[list]').value;
+                        const muhatap = body.querySelectorAll('input[type="text"]')[
+                            0].value;
+                        const phone = body.querySelectorAll('input[type="text"]')[1]
+                            .value;
+                        const konu = body.querySelector('textarea').value;
+                        const userId = body.querySelector('select').value;
+
+                        const selectedCustomer = customers.find(c => c.company ===
+                            companyName);
+                        const selectedUser = users.find(u => u.id == userId);
+
+                        if (!selectedCustomer || !selectedUser)
+                            return showNotification(
+                                "Geçerli müşteri ve personel seçin!", false);
+
+                        const fd = new FormData();
+                        fd.append("tarih", tarih);
+                        fd.append("saat", saat);
+                        fd.append("customer_id", selectedCustomer.id);
+                        fd.append("muhatap", muhatap);
+                        fd.append("phone", phone);
+                        fd.append("konu", konu);
+                        fd.append("user_id", selectedUser.id);
+
+                        const res = await fetch(
+                        `/api/faaliyetraporu/update/${id}`, {
+                            method: "PUT",
+                            body: fd
+                        });
+                        const result = await res.json();
+                        if (result.success) location.reload();
+                        else showNotification(result.message, false);
+                    });
+
+                    footer.querySelector(".cancel-btn").addEventListener("click", () => location
+                        .reload());
+                });
+            });
+
+            // Silme
+            document.querySelectorAll(".delete-btn").forEach(btn => {
+                btn.addEventListener("click", async e => {
+                    const card = e.target.closest(".report-card");
+                    const id = card.dataset.id;
+                    if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+                    const res = await fetch(`/api/faaliyetraporu/delete/${id}`, {
+                        method: "DELETE"
+                    });
+                    const result = await res.json();
+                    if (result.success) card.remove();
+                    else showNotification(result.message, false);
+                });
+            });
+
+            // Arama
+            document.getElementById("searchReports").addEventListener("input", e => {
+                const q = e.target.value.toLowerCase();
+                document.querySelectorAll(".report-card").forEach(card => {
+                    card.style.display = card.textContent.toLowerCase().includes(q) ? "" :
+                        "none";
+                });
+            });
+        });
+    </script>
+</div>
+{% endblock %}

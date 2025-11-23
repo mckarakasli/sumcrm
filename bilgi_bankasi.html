@@ -1,0 +1,104 @@
+{% extends 'base.html' %} {% block title %}Bilgi Bankası{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+
+    <h3 class="mb-4"><i class="bi bi-book text-primary"></i> Bilgi Bankası</h3>
+
+    <!-- 🔹 Yeni Konu Ekleme Butonu -->
+    <div class="mb-4">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTopicModal">
+            <i class="bi bi-plus-circle me-2"></i> Yeni Konu Ekle
+        </button>
+    </div>
+
+    <!-- 🔹 Konular Listesi -->
+    <div class="row g-3" id="topicList">
+        {% for topic in topics %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 position-relative topic-card" style="cursor:pointer;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold text-primary mb-2" onclick="window.location.href='/bilgi_bankasi/{{ topic.id }}'">
+                        <i class="bi bi-journal-text me-2"></i> {{ topic.title }}
+                    </h5>
+
+                    <p class="mb-1"><strong>Kategori:</strong> {{ topic.category or 'Genel' }}</p>
+                    <p class="mb-1"><strong>Oluşturan:</strong> {{ topic.created_by }}</p>
+                    <p class="mb-0 text-muted"><small>Oluşturulma: {{ topic.created_at.strftime("%d.%m.%Y") }}</small></p>
+
+                    {% if topic.user_id == request.session.user.id %}
+                    <div class="mt-2 d-flex gap-2">
+                        <!-- Düzenle Butonu -->
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTopicModal{{ topic.id }}">
+                         <i class="bi bi-pencil"></i> Düzenle
+                     </button>
+
+                        <!-- Sil Butonu -->
+                        <form action="/bilgi_bankasi/{{ topic.id }}/delete" method="POST" class="d-inline" onsubmit="return confirm('Bu konuyu silmek istediğinizden emin misiniz?');">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                             <i class="bi bi-trash"></i> Sil
+                         </button>
+                        </form>
+                    </div>
+
+                    <!-- 🔹 Düzenleme Modal -->
+                    <div class="modal fade" id="editTopicModal{{ topic.id }}" tabindex="-1" aria-labelledby="editTopicModalLabel{{ topic.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="/bilgi_bankasi/{{ topic.id }}/update" method="POST">
+                                    <div class="mb-3">
+                                        <label for="title{{ topic.id }}" class="form-label">Başlık</label>
+                                        <input type="text" class="form-control" name="title" id="title{{ topic.id }}" value="{{ topic.title }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description{{ topic.id }}" class="form-label">Açıklama</label>
+                                        <textarea class="form-control" name="description" id="description{{ topic.id }}" rows="4" required>{{ topic.description }}</textarea>
+                                    </div>
+                                    <input type="hidden" name="user_id" value="{{ request.session.user.id }}">
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                        <button type="submit" class="btn btn-primary">Güncelle</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %} {% if topics|length == 0 %}
+        <div class="col-12 text-muted fst-italic">Henüz hiçbir konu eklenmemiştir.</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- 🔹 Yeni Konu Modal -->
+<div class="modal fade" id="createTopicModal" tabindex="-1" aria-labelledby="createTopicModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/bilgi_bankasi/create" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTopicModalLabel">Yeni Konu Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Başlık</label>
+                        <input type="text" class="form-control" name="title" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Açıklama</label>
+                        <textarea class="form-control" name="description" id="description" rows="4" required></textarea>
+                    </div>
+                    <input type="hidden" name="user_id" value="{{ request.session.user.id }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

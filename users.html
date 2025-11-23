@@ -1,0 +1,210 @@
+{% extends 'base.html' %} {% block title %}Kullanıcılar{% endblock %} {% block content %}
+<main class="flex-fill">
+    <div class="container-fluid py-5">
+
+        <!-- Başlık ve Arama -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <h3 class="mb-2 mb-md-0">
+                <i class="bi bi-people-fill text-primary"></i> Kullanıcılar
+            </h3>
+            <div class="input-group" style="max-width: 300px;">
+                <input type="text" class="form-control rounded-start" placeholder="Kullanıcı ara..." id="searchInput">
+                <button class="btn btn-primary rounded-end" type="button" id="searchBtn">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Kullanıcı Tablosu Card -->
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center rounded-3" id="usersTable">
+                        <thead class="table-dark rounded-top-4">
+                            <tr>
+                                <th>Kullanıcı Adı</th>
+                                <th style="text-align: left;">Ad Soyad</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr class="table-row" data-id="{{ user.id }}" data-username="{{ user.username }}" data-name="{{ user.name }}">
+                                <td>{{ user.username }}</td>
+                                <td style="text-align: left;">{{ user.name }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-success updateBtn" title="Güncelle" data-bs-toggle="modal" data-bs-target="#updateUserModal">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %} {% if users|length == 0 %}
+                            <tr>
+                                <td colspan="3" class="text-muted py-3">Henüz kullanıcı bulunamadı!</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Floating Add Button -->
+<button class="btn btn-primary rounded-circle shadow-lg position-fixed d-flex justify-content-center align-items-center" style="bottom: 40px; right: 40px; width: 60px; height: 60px; font-size: 24px; transition: transform 0.2s;" data-bs-toggle="modal"
+    data-bs-target="#addUserModal">
+    <i class="bi bi-plus"></i>
+</button>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <form method="post" action="/users/add">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title">Yeni Kullanıcı Ekle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="usernameAdd" class="form-label fw-bold">Kullanıcı Adı</label>
+                        <input type="text" class="form-control" id="usernameAdd" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nameAdd" class="form-label fw-bold">Ad Soyad</label>
+                        <input type="text" class="form-control" id="nameAdd" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordAdd" class="form-label fw-bold">Şifre</label>
+                        <input type="password" class="form-control" id="passwordAdd" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordAddConfirm" class="form-label fw-bold">Şifre Tekrar</label>
+                        <input type="password" class="form-control" id="passwordAddConfirm" required>
+                    </div>
+                    <small id="passwordMismatch" class="text-danger d-none">Şifreler uyuşmuyor!</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-primary rounded-pill fw-bold">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update User Modal -->
+<div class="modal fade" id="updateUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <form method="post" action="/users/update" id="updateUserForm">
+                <input type="hidden" name="id" id="updateUserId">
+                <div class="modal-header bg-success text-white rounded-top-4">
+                    <h5 class="modal-title">Kullanıcıyı Güncelle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="usernameUpdate" class="form-label fw-bold">Kullanıcı Adı</label>
+                        <input type="text" class="form-control" id="usernameUpdate" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nameUpdate" class="form-label fw-bold">Ad Soyad</label>
+                        <input type="text" class="form-control" id="nameUpdate" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordUpdate" class="form-label fw-bold">Şifre</label>
+                        <input type="password" class="form-control" id="passwordUpdate" name="password">
+                        <small class="text-muted">Şifreyi değiştirmek istemiyorsanız boş bırakın.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-success rounded-pill fw-bold">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toasts -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+    <div id="updateToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">Kullanıcı başarıyla güncellendi!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div id="addUserToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">Kullanıcı başarıyla eklendi!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add toast
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('add') === 'success') {
+            bootstrap.Toast.getOrCreateInstance(document.getElementById('addUserToast')).show();
+            params.delete('add');
+            history.replaceState({}, '', `${location.pathname}`);
+        }
+        if (params.get('update') === 'success') {
+            bootstrap.Toast.getOrCreateInstance(document.getElementById('updateToast')).show();
+            params.delete('update');
+            history.replaceState({}, '', `${location.pathname}`);
+        }
+
+        // Password match check
+        document.querySelector("#addUserModal form").addEventListener("submit", function(e) {
+            const pw = document.getElementById("passwordAdd").value;
+            const pwConfirm = document.getElementById("passwordAddConfirm").value;
+            const msg = document.getElementById("passwordMismatch");
+            if (pw !== pwConfirm) {
+                e.preventDefault();
+                msg.classList.remove("d-none");
+            } else {
+                msg.classList.add("d-none");
+            }
+        });
+
+        // Search
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const val = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+                row.style.display = row.cells[0].textContent.toLowerCase().includes(val) ||
+                    row.cells[1].textContent.toLowerCase().includes(val) ? '' : 'none';
+            });
+        });
+
+        // Update modal populate
+        document.querySelectorAll('.updateBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                document.getElementById('updateUserId').value = row.dataset.id;
+                document.getElementById('usernameUpdate').value = row.dataset.username;
+                document.getElementById('nameUpdate').value = row.dataset.name;
+                document.getElementById('passwordUpdate').value = '';
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Responsive ve modern görünüm için stil eklemeleri */
+    
+    @media (max-width: 768px) {
+        .table th,
+        .table td {
+            padding: 8px !important;
+        }
+    }
+</style>
+
+{% endblock %}

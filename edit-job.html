@@ -1,0 +1,71 @@
+{% extends 'base.html' %} {% block title %}İşi Düzenle{% endblock %} {% block content %}
+<div class="container-fluid py-4">
+    <h3 class="mb-4">
+        <i class="bi bi-pencil-square text-primary"></i> İş Düzenle
+    </h3>
+
+    {% if job %} {% set main_job = job[0] %}
+    <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-body">
+            <form method="post" action="/job/{{ main_job.job_id }}/update">
+
+                <!-- Gizli: İş ID ve Yazar ID -->
+                <input type="hidden" name="job_id" value="{{ main_job.job_id }}">
+                <input type="hidden" name="author_id" value="{{ request.session.get('user_id') }}">
+
+                <!-- İş Başlığı -->
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-bold">İş Başlığı</label>
+                    <input type="text" class="form-control form-control-lg" id="title" name="title" value="{{ main_job.title }}" required>
+                </div>
+
+                <!-- Müşteri Seçimi -->
+                <div class="mb-3">
+                    <label for="customer_id" class="form-label fw-bold">Müşteri</label>
+                    <select class="form-select form-select-lg" id="customer_id" name="customer_id" required>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}"
+                            {% if customer.id == main_job.customer_id %}selected{% endif %}>
+                            {{ customer.company }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Termin Tarihi -->
+                <div class="mb-3">
+                    <label for="due_date" class="form-label fw-bold">Termin Tarihi</label>
+                    <input type="date" class="form-control form-control-lg" id="due_date" name="final_date" value="{{ main_job.target_date.strftime('%Y-%m-%d') if main_job.target_date else '' }}" required>
+                </div>
+
+                <!-- Personel Ataması -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Personel Ataması</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for user in users %}
+                        <div class="form-check form-check-inline">
+                            <input class="btn-check" type="checkbox" name="user_ids" id="user{{ user.id }}" value="{{ user.id }}" autocomplete="off" {% if main_job.assigned_users and user.name in main_job.assigned_users %}checked{% endif %}>
+                            <label class="btn btn-outline-primary" for="user{{ user.id }}">{{ user.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted d-block mt-1">Birden çok personel seçebilirsiniz.</small>
+                </div>
+
+                <!-- Açıklama -->
+                <div class="mb-3">
+                    <label for="description" class="form-label fw-bold">Açıklama</label>
+                    <textarea class="form-control form-control-lg" id="description" name="description" rows="3">{{ main_job.description }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg shadow-sm px-4">
+                    <i class="bi bi-save"></i> Güncelle
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-danger">İş bulunamadı.</p>
+    {% endif %}
+</div>
+{% endblock %}
